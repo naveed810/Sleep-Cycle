@@ -1,16 +1,12 @@
+
 import type { UserProfile } from '../types/user';
 import type { SleepRecord } from '../types/sleep';
 import type { AlarmItem } from '../types/audio';
 
-// API Base URL adapts to current host (localhost, 127.0.0.1, or LAN IP) for Live Server
-function resolveApiBase(): string {
-  if (typeof window !== 'undefined' && window.location.hostname) {
-    return `http://${window.location.hostname}:8000/api/v1`;
-  }
-  return (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:8000/api/v1';
-}
-
-export const API_BASE: string = resolveApiBase();
+// Live Render Backend API URL
+export const API_BASE: string =
+  (import.meta.env.VITE_API_BASE_URL as string) ||
+  'https://sleep-cycle-backend-api.onrender.com/api/v1';
 
 export const TOKEN_KEY = 'sleepcycle_token';
 
@@ -77,7 +73,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     return (await res.json()) as T;
   } catch (err: any) {
     if (err.name === 'TypeError' && err.message.includes('fetch')) {
-      throw new Error('Backend server is unreachable. Please verify FastAPI is running on port 8000.');
+      throw new Error('Backend server is unreachable. Please check your internet connection or Render service.');
     }
     throw err;
   }
@@ -448,7 +444,10 @@ export const api = {
 
   // ── Health ──
   async checkHealth(): Promise<{ status: string; service: string }> {
-    const res = await fetch('http://localhost:8000/health');
+    const res = await fetch('https://sleep-cycle-backend-api.onrender.com/health');
+    if (!res.ok) {
+      throw new Error(`Health check failed: ${res.status}`);
+    }
     return res.json();
   },
 };
